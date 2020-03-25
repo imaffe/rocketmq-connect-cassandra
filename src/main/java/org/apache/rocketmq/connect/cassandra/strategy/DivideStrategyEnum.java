@@ -14,10 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.rocketmq.connect.cassandra.common;
+package org.apache.rocketmq.connect.cassandra.strategy;
 
-public class ConstDefine {
+public enum DivideStrategyEnum {
 
-    public static String CASSANDRA_CONNECTOR_ADMIN_PREFIX = "CASSANDRA-CONNECTOR-ADMIN";
-
+    BY_TOPIC,
+    BY_QUEUE
 }

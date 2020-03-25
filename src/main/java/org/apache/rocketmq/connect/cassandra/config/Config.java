@@ -28,24 +28,21 @@ import java.util.Set;
 public class Config {
     private static final Logger LOG = LoggerFactory.getLogger(Config.class);
 
+    // TODO need to figure out what is the mandatory fields used by my current implementation
     /* Database Connection Config */
-    private String dbUrl;
-    private String dbPort;
+    private String contactPoint;
+    private String contactPointPort;
+    private String localDataCenter;
     private String dbUsername;
     private String dbPassword;
     private String dataType;
     private String rocketmqTopic;
-    private String jdbcBackoff;
-    private String jdbcAttempts;
-    private String catalogPattern;
+
     private List tableWhitelist;
     private List tableBlacklist;
-    private String schemaPattern;
-    private boolean numericPrecisionMapping = false;
-    private String bumericMapping;
-    private String dialectName = "";
     private String whiteDataBase;
     private String whiteTable;
+
 
     public static final String CONN_TASK_PARALLELISM = "task-parallelism";
     public static final String CONN_TASK_DIVIDE_STRATEGY = "task-divide-strategy";
@@ -82,13 +79,211 @@ public class Config {
     private Logger log = LoggerFactory.getLogger(Config.class);
     public static final Set<String> REQUEST_CONFIG = new HashSet<String>() {
         {
-            add("dbUrl");
-            add("dbPort");
+            add("contactPoint");
+            add("contactPointPort");
             add("dbUsername");
             add("dbPassword");
             add("mode");
             add("rocketmqTopic");
         }
     };
+
+
+
+    public static Logger getLOG() {
+        return LOG;
+    }
+
+    public String getContactPoint() {
+        return contactPoint;
+    }
+
+    public void setContactPoint(String contactPoint) {
+        this.contactPoint = contactPoint;
+    }
+
+    public String getContactPointPort() {
+        return contactPointPort;
+    }
+
+    public void setContactPointPort(String contactPointPort) {
+        this.contactPointPort = contactPointPort;
+    }
+
+    public String getLocalDataCenter() {
+        return localDataCenter;
+    }
+
+    public void setLocalDataCenter(String localDataCenter) {
+        this.localDataCenter = localDataCenter;
+    }
+
+    public String getDbUsername() {
+        return dbUsername;
+    }
+
+    public void setDbUsername(String dbUsername) {
+        this.dbUsername = dbUsername;
+    }
+
+    public String getDbPassword() {
+        return dbPassword;
+    }
+
+    public void setDbPassword(String dbPassword) {
+        this.dbPassword = dbPassword;
+    }
+
+    public String getDataType() {
+        return dataType;
+    }
+
+    public void setDataType(String dataType) {
+        this.dataType = dataType;
+    }
+
+    public String getRocketmqTopic() {
+        return rocketmqTopic;
+    }
+
+    public void setRocketmqTopic(String rocketmqTopic) {
+        this.rocketmqTopic = rocketmqTopic;
+    }
+
+    public String getMode() {
+        return mode;
+    }
+
+    public void setMode(String mode) {
+        this.mode = mode;
+    }
+
+    public String getIncrementingColumnName() {
+        return incrementingColumnName;
+    }
+
+    public void setIncrementingColumnName(String incrementingColumnName) {
+        this.incrementingColumnName = incrementingColumnName;
+    }
+
+    public String getQuery() {
+        return query;
+    }
+
+    public void setQuery(String query) {
+        this.query = query;
+    }
+
+    public String getTimestampColmnName() {
+        return timestampColmnName;
+    }
+
+    public void setTimestampColmnName(String timestampColmnName) {
+        this.timestampColmnName = timestampColmnName;
+    }
+
+    public boolean isValidateNonNull() {
+        return validateNonNull;
+    }
+
+    public void setValidateNonNull(boolean validateNonNull) {
+        this.validateNonNull = validateNonNull;
+    }
+
+    public String getTableTypes() {
+        return tableTypes;
+    }
+
+    public void setTableTypes(String tableTypes) {
+        this.tableTypes = tableTypes;
+    }
+
+    public long getPollInterval() {
+        return pollInterval;
+    }
+
+    public void setPollInterval(long pollInterval) {
+        this.pollInterval = pollInterval;
+    }
+
+    public int getBatchMaxRows() {
+        return batchMaxRows;
+    }
+
+    public void setBatchMaxRows(int batchMaxRows) {
+        this.batchMaxRows = batchMaxRows;
+    }
+
+    public long getTablePollInterval() {
+        return tablePollInterval;
+    }
+
+    public void setTablePollInterval(long tablePollInterval) {
+        this.tablePollInterval = tablePollInterval;
+    }
+
+    public long getTimestampDelayInterval() {
+        return timestampDelayInterval;
+    }
+
+    public void setTimestampDelayInterval(long timestampDelayInterval) {
+        this.timestampDelayInterval = timestampDelayInterval;
+    }
+
+    public String getDbTimezone() {
+        return dbTimezone;
+    }
+
+    public void setDbTimezone(String dbTimezone) {
+        this.dbTimezone = dbTimezone;
+    }
+
+    public String getQueueName() {
+        return queueName;
+    }
+
+    public void setQueueName(String queueName) {
+        this.queueName = queueName;
+    }
+
+    public Logger getLog() {
+        return log;
+    }
+
+    public void setLog(Logger log) {
+        this.log = log;
+    }
+
+    public List getTableWhitelist() {
+        return tableWhitelist;
+    }
+
+    public void setTableWhitelist(List tableWhitelist) {
+        this.tableWhitelist = tableWhitelist;
+    }
+
+    public List getTableBlacklist() {
+        return tableBlacklist;
+    }
+
+    public void setTableBlacklist(List tableBlacklist) {
+        this.tableBlacklist = tableBlacklist;
+    }
+
+    public String getWhiteDataBase() {
+        return whiteDataBase;
+    }
+
+    public void setWhiteDataBase(String whiteDataBase) {
+        this.whiteDataBase = whiteDataBase;
+    }
+
+    public String getWhiteTable() {
+        return whiteTable;
+    }
+
+    public void setWhiteTable(String whiteTable) {
+        this.whiteTable = whiteTable;
+    }
 
 }

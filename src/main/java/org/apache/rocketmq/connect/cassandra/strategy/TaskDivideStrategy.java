@@ -1,3 +1,4 @@
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -14,10 +15,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.rocketmq.connect.cassandra.common;
 
-public class ConstDefine {
+package org.apache.rocketmq.connect.cassandra.strategy;
 
-    public static String CASSANDRA_CONNECTOR_ADMIN_PREFIX = "CASSANDRA-CONNECTOR-ADMIN";
+import io.openmessaging.KeyValue;
+import io.openmessaging.connector.api.Task;
+import org.apache.rocketmq.connect.cassandra.config.DbConnectorConfig;
+import org.apache.rocketmq.connect.cassandra.config.TaskDivideConfig;
+import org.apache.rocketmq.connect.cassandra.config.TaskTopicInfo;
 
+import java.util.List;
+import java.util.Map;
+
+public abstract class TaskDivideStrategy {
+    public abstract List<KeyValue> divide(DbConnectorConfig dbConnectorConfig, TaskDivideConfig tdc);
 }

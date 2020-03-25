@@ -16,8 +16,11 @@
  */
 package org.apache.rocketmq.connect.cassandra.common;
 
-public class ConstDefine {
+public enum DataType {
 
-    public static String CASSANDRA_CONNECTOR_ADMIN_PREFIX = "CASSANDRA-CONNECTOR-ADMIN";
-
+    COMMON_MESSAGE,
+    TOPIC_CONFIG,
+    BROKER_CONFIG,
+    SUB_CONFIG,
+    OFFSET
 }
