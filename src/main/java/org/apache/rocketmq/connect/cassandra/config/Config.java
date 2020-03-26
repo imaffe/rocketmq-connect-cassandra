@@ -30,8 +30,8 @@ public class Config {
 
     // TODO need to figure out what is the mandatory fields used by my current implementation
     /* Database Connection Config */
-    private String contactPoint;
-    private String contactPointPort;
+    private String dbUrl;
+    private String dbPort;
     private String localDataCenter;
     private String dbUsername;
     private String dbPassword;
@@ -79,8 +79,8 @@ public class Config {
     private Logger log = LoggerFactory.getLogger(Config.class);
     public static final Set<String> REQUEST_CONFIG = new HashSet<String>() {
         {
-            add("contactPoint");
-            add("contactPointPort");
+            add("dbUrl");
+            add("dbPort");
             add("dbUsername");
             add("dbPassword");
             add("mode");
@@ -94,21 +94,13 @@ public class Config {
         return LOG;
     }
 
-    public String getContactPoint() {
-        return contactPoint;
-    }
+    public String getDbUrl() { return dbUrl; }
 
-    public void setContactPoint(String contactPoint) {
-        this.contactPoint = contactPoint;
-    }
+    public void setDbUrl(String dbUrl) { this.dbUrl = dbUrl; }
 
-    public String getContactPointPort() {
-        return contactPointPort;
-    }
+    public String getDbPort() { return dbPort; }
 
-    public void setContactPointPort(String contactPointPort) {
-        this.contactPointPort = contactPointPort;
-    }
+    public void setDbPort(String dbPort) { this.dbPort = dbPort; }
 
     public String getLocalDataCenter() {
         return localDataCenter;

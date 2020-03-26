@@ -45,13 +45,13 @@ public class DBUtils {
 
         CqlSessionBuilder sessionBuilder = CqlSession.builder();
 
-        String contactPoint = config.getContactPoint(); // TODO can be extended to a list of contactPoint
-        String contactPointPort = config.getContactPointPort();
+        String dbUrl = config.getDbUrl(); // TODO can be extended to a list of contactPoint
+        String dbPort = config.getDbPort();
         String localDataCenter = config.getLocalDataCenter();
         String username =  config.getDbUsername();
         String password =  config.getDbPassword();
 
-        sessionBuilder.addContactPoint(new InetSocketAddress(contactPoint, Integer.parseInt(contactPoint)))
+        sessionBuilder.addContactPoint(new InetSocketAddress(dbUrl, Integer.parseInt(dbPort)))
                       .withLocalDatacenter(localDataCenter)
                       .withAuthCredentials(username, password)
         ;
