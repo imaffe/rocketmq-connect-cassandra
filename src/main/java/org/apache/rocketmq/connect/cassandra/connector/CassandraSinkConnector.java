@@ -107,8 +107,8 @@ public class CassandraSinkConnector extends SinkConnector{
 
     @Override
     public void start() {
-        startMQAdminTools();
-        startListener();
+        //startMQAdminTools();
+        //startListener();
     }
 
     public void startListener() {
@@ -213,9 +213,9 @@ public class CassandraSinkConnector extends SinkConnector{
         }
 
         // TODO why do we need to startMQAdminTools() twice?
-        startMQAdminTools();
-
-        buildRoute();
+//        startMQAdminTools();
+//
+//        buildRoute();
 
         TaskDivideConfig tdc = new TaskDivideConfig(
             this.dbConnectorConfig.getDbUrl(),
