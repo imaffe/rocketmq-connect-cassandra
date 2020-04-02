@@ -40,7 +40,7 @@ public class SinkDbConnectorConfig extends DbConnectorConfig {
 
     @Override
     public void validate(KeyValue config) {
-        this.taskParallelism = config.getInt(Config.CONN_TASK_PARALLELISM, 0);
+        this.taskParallelism = config.getInt(Config.CONN_TASK_PARALLELISM, 1);
 
         int strategy = config.getInt(Config.CONN_TASK_DIVIDE_STRATEGY, DivideStrategyEnum.BY_QUEUE.ordinal());
 
