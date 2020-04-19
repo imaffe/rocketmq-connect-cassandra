@@ -18,12 +18,19 @@
 
 package org.apache.rocketmq.connect.cassandra.common;
 
-import com.alibaba.druid.pool.DruidDataSourceFactory;
-
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.CqlSessionBuilder;
+import com.datastax.oss.driver.api.core.config.DefaultDriverOption;
+import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
 import com.datastax.oss.driver.internal.core.auth.PlainTextAuthProvider;
+import io.netty.util.concurrent.SingleThreadEventExecutor;
+import java.io.File;
 import java.net.InetSocketAddress;
+import java.time.Duration;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import org.apache.rocketmq.connect.cassandra.config.Config;
 import org.apache.rocketmq.connect.cassandra.connector.CassandraSinkTask;
 import org.slf4j.Logger;
@@ -39,11 +46,11 @@ public class DBUtils {
     private static final Logger log = LoggerFactory.getLogger(CassandraSinkTask.class);
 
     public static CqlSession initCqlSession(Config config) throws Exception {
+        log.info("Trying to init Cql Session ");
         Map<String, String> map = new HashMap<>();
 
         // TODO Currently only support the simplest form
 
-        CqlSessionBuilder sessionBuilder = CqlSession.builder();
 
         String dbUrl = config.getDbUrl(); // TODO can be extended to a list of contactPoint
         String dbPort = config.getDbPort();
@@ -51,14 +58,35 @@ public class DBUtils {
         String username =  config.getDbUsername();
         String password =  config.getDbPassword();
 
-        sessionBuilder.addContactPoint(new InetSocketAddress(dbUrl, Integer.parseInt(dbPort)))
-                      .withLocalDatacenter(localDataCenter)
-                      .withAuthCredentials(username, password)
-        ;
+//        sessionBuilder.addContactPoint(new InetSocketAddress(dbUrl, Integer.parseInt(dbPort)))
+//                      .withAuthCredentials(username, password);
 
 
-        // log.info("{} config read successful", map);
-        CqlSession cqlSession = sessionBuilder.build();
+        log.info("Cassandra dbUrl: {}", dbUrl);
+        log.info("Cassandra dbPort: {}", dbPort);
+        log.info("Cassandra username: {}", username);
+        log.info("Cassandra password: {}", password);
+
+        CqlSession cqlSession = null;
+        log.info("Using Program Config Loader");
+        try {
+//            File file = new File("/usr/local/connector-plugins/application.conf");
+//            CqlSession session = CqlSession.builder().withConfigLoader(DriverConfigLoader.fromFile(file)).build();
+            // TODO doesn't need this executor
+            ExecutorService executorService = Executors.newSingleThreadExecutor();
+            Future<CqlSession> handle = executorService.submit(new Callable<CqlSession>() {
+                @Override
+                public CqlSession call() {
+                    return CqlSession.builder().build();
+                }
+            });
+
+            cqlSession = handle.get();
+
+        } catch (Exception e) {
+            log.info("error when creating cqlSession {}", e.getMessage());
+            e.printStackTrace();
+        }
         log.info("init Cql Session success");
 
         return cqlSession;
