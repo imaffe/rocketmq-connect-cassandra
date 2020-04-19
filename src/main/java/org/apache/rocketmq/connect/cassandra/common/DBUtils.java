@@ -44,7 +44,6 @@ public class DBUtils {
 
         // TODO Currently only support the simplest form
 
-        CqlSessionBuilder sessionBuilder = CqlSession.builder();
 
         String dbUrl = config.getDbUrl(); // TODO can be extended to a list of contactPoint
         String dbPort = config.getDbPort();
@@ -63,7 +62,7 @@ public class DBUtils {
 
         CqlSession cqlSession = null;
         try {
-            cqlSession = sessionBuilder.build();
+            cqlSession = CqlSession.builder().build();
         } catch (Exception e) {
             log.info("error when creating cqlSession {}", e.getMessage());
             e.printStackTrace();
