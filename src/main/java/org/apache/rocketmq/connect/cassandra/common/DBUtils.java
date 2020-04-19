@@ -18,8 +18,6 @@
 
 package org.apache.rocketmq.connect.cassandra.common;
 
-import com.alibaba.druid.pool.DruidDataSourceFactory;
-
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.CqlSessionBuilder;
 import com.datastax.oss.driver.internal.core.auth.PlainTextAuthProvider;
