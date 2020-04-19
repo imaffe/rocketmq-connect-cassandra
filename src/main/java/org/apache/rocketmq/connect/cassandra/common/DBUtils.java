@@ -52,8 +52,8 @@ public class DBUtils {
         String username =  config.getDbUsername();
         String password =  config.getDbPassword();
 
-        sessionBuilder.addContactPoint(new InetSocketAddress(dbUrl, Integer.parseInt(dbPort)))
-                      .withAuthCredentials(username, password);
+//        sessionBuilder.addContactPoint(new InetSocketAddress(dbUrl, Integer.parseInt(dbPort)))
+//                      .withAuthCredentials(username, password);
 
 
         log.info("Cassandra dbUrl: {}", dbUrl);
@@ -65,7 +65,7 @@ public class DBUtils {
         try {
             cqlSession = sessionBuilder.build();
         } catch (Exception e) {
-            log.info("error when creating cqlSessionm {}", e.getMessage());
+            log.info("error when creating cqlSession {}", e.getMessage());
             e.printStackTrace();
         }
         log.info("init Cql Session success");
