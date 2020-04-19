@@ -33,16 +33,16 @@ public class SinkDbConnectorConfig extends DbConnectorConfig {
     private String srcNamesrvs;
     private String srcCluster;
     private long refreshInterval;
-    private Map<String, List<TaskTopicInfo>> topicRouteMap;
+    private Map<String, Set<TaskTopicInfo>> topicRouteMap;
 
     public SinkDbConnectorConfig(){
     }
 
     @Override
     public void validate(KeyValue config) {
-        this.taskParallelism = config.getInt(Config.CONN_TASK_PARALLELISM, 0);
+        this.taskParallelism = config.getInt(Config.CONN_TASK_PARALLELISM, 1);
 
-        int strategy = config.getInt(Config.CONN_TASK_DIVIDE_STRATEGY, DivideStrategyEnum.BY_QUEUE.ordinal());
+        int strategy = config.getInt(Config.CONN_TASK_DIVIDE_STRATEGY, DivideStrategyEnum.BY_TOPIC.ordinal());
 
         this.taskDivideStrategy = new DivideTaskByTopic();
 
@@ -59,6 +59,7 @@ public class SinkDbConnectorConfig extends DbConnectorConfig {
         this.srcNamesrvs = config.getString(Config.CONN_SOURCE_RMQ);
         this.srcCluster = config.getString(Config.CONN_SOURCE_CLUSTER);
         this.refreshInterval = config.getLong(Config.REFRESH_INTERVAL, 3);
+        this.mode = config.getString(Config.CONN_DB_MODE, "bulk");
 
     }
 
@@ -97,11 +98,11 @@ public class SinkDbConnectorConfig extends DbConnectorConfig {
         return this.refreshInterval;
     }
 
-    public Map<String, List<TaskTopicInfo>> getTopicRouteMap() {
+    public Map<String, Set<TaskTopicInfo>> getTopicRouteMap() {
         return topicRouteMap;
     }
 
-    public void setTopicRouteMap(Map<String, List<TaskTopicInfo>> topicRouteMap) {
+    public void setTopicRouteMap(Map<String, Set<TaskTopicInfo>> topicRouteMap) {
         this.topicRouteMap = topicRouteMap;
     }
 

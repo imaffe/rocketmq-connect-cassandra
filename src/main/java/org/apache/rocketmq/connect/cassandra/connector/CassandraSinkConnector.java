@@ -22,6 +22,7 @@ package org.apache.rocketmq.connect.cassandra.connector;
 import io.openmessaging.KeyValue;
 import io.openmessaging.connector.api.Task;
 import io.openmessaging.connector.api.sink.SinkConnector;
+import java.util.concurrent.ScheduledFuture;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.apache.commons.lang3.text.StrSubstitutor;
@@ -32,6 +33,7 @@ import org.apache.rocketmq.common.protocol.body.TopicList;
 import org.apache.rocketmq.common.protocol.route.BrokerData;
 import org.apache.rocketmq.common.protocol.route.QueueData;
 import org.apache.rocketmq.common.protocol.route.TopicRouteData;
+import org.apache.rocketmq.connect.cassandra.common.CloneUtils;
 import org.apache.rocketmq.connect.cassandra.common.ConstDefine;
 import org.apache.rocketmq.connect.cassandra.common.DataType;
 import org.apache.rocketmq.connect.cassandra.common.Utils;
@@ -54,14 +56,15 @@ public class CassandraSinkConnector extends SinkConnector{
     private DbConnectorConfig dbConnectorConfig;
     private volatile boolean configValid = false;
     private ScheduledExecutorService executor;
-    private Map<String, List<TaskTopicInfo>> topicRouteMap;
+    private HashMap<String, Set<TaskTopicInfo>> topicRouteMap;
 
     private DefaultMQAdminExt srcMQAdminExt;
 
     private volatile boolean adminStarted;
 
+    private ScheduledFuture<?> listenerHandle;
     public CassandraSinkConnector() {
-        topicRouteMap = new HashMap<String, List<TaskTopicInfo>>();
+        topicRouteMap = new HashMap<>();
         dbConnectorConfig = new SinkDbConnectorConfig();
         executor = Executors.newSingleThreadScheduledExecutor(new BasicThreadFactory.Builder().namingPattern("CassandraSinkConnector-SinkWatcher-%d").daemon(true).build());
     }
@@ -73,7 +76,6 @@ public class CassandraSinkConnector extends SinkConnector{
         RPCHook rpcHook = null;
         this.srcMQAdminExt = new DefaultMQAdminExt(rpcHook);
         this.srcMQAdminExt.setNamesrvAddr(((SinkDbConnectorConfig) this.dbConnectorConfig).getSrcNamesrvs());
-        // TODO where is this prefix used ? This could be critical
         this.srcMQAdminExt.setAdminExtGroup(Utils.createGroupName(ConstDefine.CASSANDRA_CONNECTOR_ADMIN_PREFIX));
         this.srcMQAdminExt.setInstanceName(Utils.createInstanceName(((SinkDbConnectorConfig) this.dbConnectorConfig).getSrcNamesrvs()));
 
@@ -112,31 +114,35 @@ public class CassandraSinkConnector extends SinkConnector{
     }
 
     public void startListener() {
-        executor.scheduleAtFixedRate(new Runnable() {
+        listenerHandle = executor.scheduleAtFixedRate(new Runnable() {
+            boolean first = true;
+            HashMap<String, Set<TaskTopicInfo>> origin = null;
+
             @Override
             public void run() {
-                Map<String, List<TaskTopicInfo>> origin = topicRouteMap;
-                topicRouteMap = new HashMap<String, List<TaskTopicInfo>>();
-
                 buildRoute();
-
+                if (first) {
+                    origin = CloneUtils.clone(topicRouteMap);
+                    first = false;
+                }
                 if (!compare(origin, topicRouteMap)) {
                     context.requestTaskReconfiguration();
+                    origin = CloneUtils.clone(topicRouteMap);
                 }
             }
         }, ((SinkDbConnectorConfig) dbConnectorConfig).getRefreshInterval(), ((SinkDbConnectorConfig) dbConnectorConfig).getRefreshInterval(), TimeUnit.SECONDS);
     }
 
-    public boolean compare(Map<String, List<TaskTopicInfo>> origin, Map<String, List<TaskTopicInfo>> updated) {
+    public boolean compare(Map<String, Set<TaskTopicInfo>> origin, Map<String, Set<TaskTopicInfo>> updated) {
         if (origin.size() != updated.size()) {
             return false;
         }
-        for (Map.Entry<String, List<TaskTopicInfo>> entry : origin.entrySet()) {
+        for (Map.Entry<String, Set<TaskTopicInfo>> entry : origin.entrySet()) {
             if (!updated.containsKey(entry.getKey())) {
                 return false;
             }
-            List<TaskTopicInfo> originTasks = entry.getValue();
-            List<TaskTopicInfo> updateTasks = updated.get(entry.getKey());
+            Set<TaskTopicInfo> originTasks = entry.getValue();
+            Set<TaskTopicInfo> updateTasks = updated.get(entry.getKey());
             if (originTasks.size() != updateTasks.size()) {
                 return false;
             }
@@ -152,7 +158,6 @@ public class CassandraSinkConnector extends SinkConnector{
     public void buildRoute() {
         String srcCluster = ((SinkDbConnectorConfig) this.dbConnectorConfig).getSrcCluster();
         try {
-            // TODO we need to configure the whitelist in a mysql database
             for (String topic : ((SinkDbConnectorConfig) this.dbConnectorConfig).getWhiteList()) {
 
                 // different from BrokerData with cluster field, which can ensure the brokerData is from expected cluster.
@@ -166,7 +171,7 @@ public class CassandraSinkConnector extends SinkConnector{
 
                 TopicRouteData topicRouteData = srcMQAdminExt.examineTopicRouteInfo(topic);
                 if (!topicRouteMap.containsKey(topic)) {
-                    topicRouteMap.put(topic, new ArrayList<TaskTopicInfo>());
+                    topicRouteMap.put(topic, new HashSet<>(16));
                 }
                 for (QueueData qd : topicRouteData.getQueueDatas()) {
                     if (brokerNameSet.contains(qd.getBrokerName())) {
@@ -184,9 +189,12 @@ public class CassandraSinkConnector extends SinkConnector{
         }
     }
 
+
+    // TODO why there is not stop
     @Override
     public void stop() {
-
+        listenerHandle.cancel(true);
+        // srcMQAdminExt.shutdown();
     }
 
     @Override
@@ -204,7 +212,6 @@ public class CassandraSinkConnector extends SinkConnector{
         return CassandraSinkTask.class;
     }
 
-    // TODO will taskConfigs() be executed first or start be executed ?
     @Override
     public List<KeyValue> taskConfigs() {
         log.info("List.start");
@@ -212,7 +219,6 @@ public class CassandraSinkConnector extends SinkConnector{
             return new ArrayList<KeyValue>();
         }
 
-        // TODO why do we need to startMQAdminTools() twice?
         startMQAdminTools();
 
         buildRoute();
@@ -229,6 +235,7 @@ public class CassandraSinkConnector extends SinkConnector{
         );
 
         ((SinkDbConnectorConfig) this.dbConnectorConfig).setTopicRouteMap(topicRouteMap);
+
         return this.dbConnectorConfig.getTaskDivideStrategy().divide(this.dbConnectorConfig, tdc);
     }
 }

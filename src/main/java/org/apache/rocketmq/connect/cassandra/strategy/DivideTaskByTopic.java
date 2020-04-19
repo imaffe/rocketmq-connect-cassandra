@@ -36,11 +36,13 @@ public class DivideTaskByTopic extends TaskDivideStrategy {
         int parallelism = tdc.getTaskParallelism();
         int id = -1;
         Set<String> topicRouteSet = ((SinkDbConnectorConfig)dbConnectorConfig).getWhiteTopics();
-        Map<Integer, String> taskTopicList = new HashMap<>();
+        Map<Integer, StringBuilder> taskTopicList = new HashMap<>();
         for (String topicName : topicRouteSet) {
             int ind = ++id % parallelism;
             if (!taskTopicList.containsKey(ind)) {
-                taskTopicList.put(ind, topicName);
+                taskTopicList.put(ind, new StringBuilder(topicName));
+            } else {
+                taskTopicList.get(ind).append(",").append(topicName);
             }
         }
 
@@ -50,7 +52,7 @@ public class DivideTaskByTopic extends TaskDivideStrategy {
             keyValue.put(Config.CONN_DB_PORT, tdc.getDbPort());
             keyValue.put(Config.CONN_DB_USERNAME, tdc.getDbUserName());
             keyValue.put(Config.CONN_DB_PASSWORD, tdc.getDbPassword());
-            keyValue.put(Config.CONN_TOPIC_NAMES, JSONObject.toJSONString(taskTopicList.get(i)));
+            keyValue.put(Config.CONN_TOPIC_NAMES, taskTopicList.get(i).toString());
             keyValue.put(Config.CONN_DATA_TYPE, tdc.getDataType());
             keyValue.put(Config.CONN_SOURCE_RECORD_CONVERTER, tdc.getSrcRecordConverter());
             keyValue.put(Config.CONN_DB_MODE, tdc.getMode());
