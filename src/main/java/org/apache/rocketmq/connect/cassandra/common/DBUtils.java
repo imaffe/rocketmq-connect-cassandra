@@ -58,7 +58,12 @@ public class DBUtils {
 
 
         // log.info("{} config read successful", map);
-        CqlSession cqlSession = sessionBuilder.build();
+        CqlSession cqlSession = null;
+        try {
+            cqlSession = sessionBuilder.build();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         log.info("init Cql Session success");
 
         return cqlSession;
