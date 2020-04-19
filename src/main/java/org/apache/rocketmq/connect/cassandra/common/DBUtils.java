@@ -39,6 +39,7 @@ public class DBUtils {
     private static final Logger log = LoggerFactory.getLogger(CassandraSinkTask.class);
 
     public static CqlSession initCqlSession(Config config) throws Exception {
+        log.info("Trying to init Cql Session success");
         Map<String, String> map = new HashMap<>();
 
         // TODO Currently only support the simplest form
@@ -53,8 +54,7 @@ public class DBUtils {
 
         sessionBuilder.addContactPoint(new InetSocketAddress(dbUrl, Integer.parseInt(dbPort)))
                       .withLocalDatacenter(localDataCenter)
-                      .withAuthCredentials(username, password)
-        ;
+                      .withAuthCredentials(username, password);
 
 
         // log.info("{} config read successful", map);
