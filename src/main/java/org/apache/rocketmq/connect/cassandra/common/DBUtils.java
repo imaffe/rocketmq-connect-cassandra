@@ -56,7 +56,11 @@ public class DBUtils {
                       .withAuthCredentials(username, password);
 
 
-        // log.info("{} config read successful", map);
+        log.info("Cassandra dbUrl: {}", dbUrl);
+        log.info("Cassandra dbPort: {}", dbPort);
+        log.info("Cassandra username: {}", username);
+        log.info("Cassandra password: {}", password);
+
         CqlSession cqlSession = null;
         try {
             cqlSession = sessionBuilder.build();
