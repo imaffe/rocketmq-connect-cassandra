@@ -20,8 +20,12 @@ package org.apache.rocketmq.connect.cassandra.common;
 
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.CqlSessionBuilder;
+import com.datastax.oss.driver.api.core.config.DefaultDriverOption;
+import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
 import com.datastax.oss.driver.internal.core.auth.PlainTextAuthProvider;
+import java.io.File;
 import java.net.InetSocketAddress;
+import java.time.Duration;
 import org.apache.rocketmq.connect.cassandra.config.Config;
 import org.apache.rocketmq.connect.cassandra.connector.CassandraSinkTask;
 import org.slf4j.Logger;
@@ -59,8 +63,10 @@ public class DBUtils {
         log.info("Cassandra password: {}", password);
 
         CqlSession cqlSession = null;
+        log.info("Using Program Config Loader");
         try {
-            cqlSession = CqlSession.builder().build();
+            File file = new File("/usr/local/connector-plugins/application.conf");
+            CqlSession session = CqlSession.builder().withConfigLoader(DriverConfigLoader.fromFile(file)).build();
         } catch (Exception e) {
             log.info("error when creating cqlSession {}", e.getMessage());
             e.printStackTrace();
