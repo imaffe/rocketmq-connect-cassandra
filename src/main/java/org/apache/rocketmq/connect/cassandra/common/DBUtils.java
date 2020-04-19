@@ -39,7 +39,7 @@ public class DBUtils {
     private static final Logger log = LoggerFactory.getLogger(CassandraSinkTask.class);
 
     public static CqlSession initCqlSession(Config config) throws Exception {
-        log.info("Trying to init Cql Session success");
+        log.info("Trying to init Cql Session ");
         Map<String, String> map = new HashMap<>();
 
         // TODO Currently only support the simplest form
@@ -53,7 +53,6 @@ public class DBUtils {
         String password =  config.getDbPassword();
 
         sessionBuilder.addContactPoint(new InetSocketAddress(dbUrl, Integer.parseInt(dbPort)))
-                      .withLocalDatacenter(localDataCenter)
                       .withAuthCredentials(username, password);
 
 
@@ -62,6 +61,7 @@ public class DBUtils {
         try {
             cqlSession = sessionBuilder.build();
         } catch (Exception e) {
+            log.info("error when creating cqlSessionm {}", e.getMessage());
             e.printStackTrace();
         }
         log.info("init Cql Session success");
