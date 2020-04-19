@@ -80,11 +80,12 @@ public class CassandraSinkConnector extends SinkConnector{
         this.srcMQAdminExt.setInstanceName(Utils.createInstanceName(((SinkDbConnectorConfig) this.dbConnectorConfig).getSrcNamesrvs()));
 
         try {
+            log.info("Trying to start srcMQAdminExt");
             this.srcMQAdminExt.start();
             log.info("RocketMQ srcMQAdminExt started");
 
         } catch (MQClientException e) {
-            log.error("Replicator start failed for `srcMQAdminExt` exception.", e);
+            log.error("Cassandra Sink Task start failed for `srcMQAdminExt` exception.", e);
         }
 
         adminStarted = true;
