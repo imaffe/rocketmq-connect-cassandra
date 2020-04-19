@@ -185,7 +185,7 @@ public class CassandraSinkConnector extends SinkConnector{
         } catch (Exception e) {
             log.error("Fetch topic list error.", e);
         } finally {
-            srcMQAdminExt.shutdown();
+            // srcMQAdminExt.shutdown();
         }
     }
 
