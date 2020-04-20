@@ -65,8 +65,9 @@ public class DBUtils {
         CqlSession cqlSession = null;
         log.info("Using Program Config Loader");
         try {
-            File file = new File("/usr/local/connector-plugins/application.conf");
-            CqlSession session = CqlSession.builder().withConfigLoader(DriverConfigLoader.fromFile(file)).build();
+//            File file = new File("/usr/local/connector-plugins/application.conf");
+//            CqlSession session = CqlSession.builder().withConfigLoader(DriverConfigLoader.fromFile(file)).build();
+            CqlSession session = CqlSession.builder().build();
         } catch (Exception e) {
             log.info("error when creating cqlSession {}", e.getMessage());
             e.printStackTrace();
