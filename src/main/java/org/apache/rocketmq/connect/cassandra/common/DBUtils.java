@@ -23,9 +23,14 @@ import com.datastax.oss.driver.api.core.CqlSessionBuilder;
 import com.datastax.oss.driver.api.core.config.DefaultDriverOption;
 import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
 import com.datastax.oss.driver.internal.core.auth.PlainTextAuthProvider;
+import io.netty.util.concurrent.SingleThreadEventExecutor;
 import java.io.File;
 import java.net.InetSocketAddress;
 import java.time.Duration;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import org.apache.rocketmq.connect.cassandra.config.Config;
 import org.apache.rocketmq.connect.cassandra.connector.CassandraSinkTask;
 import org.slf4j.Logger;
@@ -67,7 +72,16 @@ public class DBUtils {
         try {
 //            File file = new File("/usr/local/connector-plugins/application.conf");
 //            CqlSession session = CqlSession.builder().withConfigLoader(DriverConfigLoader.fromFile(file)).build();
-            CqlSession session = CqlSession.builder().build();
+            ExecutorService executorService = Executors.newSingleThreadExecutor();
+            Future<CqlSession> handle = executorService.submit(new Callable<CqlSession>() {
+                @Override
+                public CqlSession call() {
+                    return CqlSession.builder().build();
+                }
+            });
+
+            cqlSession = handle.get();
+
         } catch (Exception e) {
             log.info("error when creating cqlSession {}", e.getMessage());
             e.printStackTrace();
