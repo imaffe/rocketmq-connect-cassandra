@@ -214,7 +214,7 @@ public class Updater {
 
     private String appendWhereClause(String sql, Map<Field, Object[]> fieldMap, int beforeOrAfterUpdate) {
         sql += " where ";
-        int count = 1;
+        int count = 0;
         for (Map.Entry<Field, Object[]> entry : fieldMap.entrySet()) {
             count++;
             String fieldName = entry.getKey().getName();
