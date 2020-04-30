@@ -213,12 +213,14 @@ public class Updater {
     }
 
     private String appendWhereClause(String sql, Map<Field, Object[]> fieldMap, int beforeOrAfterUpdate) {
-        sql += " where 1=1";
+        sql += " where ";
+        int count = 1;
         for (Map.Entry<Field, Object[]> entry : fieldMap.entrySet()) {
+            count++;
             String fieldName = entry.getKey().getName();
             FieldType fieldType = entry.getKey().getType();
             Object fieldValue = entry.getValue()[beforeOrAfterUpdate];
-            sql += " and ";
+            if (count != 1) sql += " and ";
             if (fieldValue == null)
             {
                 sql += fieldName + " is NULL";
