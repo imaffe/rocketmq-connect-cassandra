@@ -1,4 +1,3 @@
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -21,7 +20,6 @@ package org.apache.rocketmq.connect.cassandra.sink;
 
 
 import com.datastax.oss.driver.api.core.CqlSession;
-import com.datastax.oss.driver.api.core.cql.PreparedStatement;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.SimpleStatement;
 import io.openmessaging.connector.api.data.EntryType;
@@ -42,34 +40,46 @@ public class Updater {
     private Config config;
     private CqlSession cqlSession;
 
+    private static final int BEFORE_UPDATE = 0;
+    private static final int AFTER_UPDATE = 1;
+
     public Updater(Config config, CqlSession cqlSession) {
         this.config = config;
         this.cqlSession = cqlSession;
     }
 
-
+    /**
+     * We cannot know the primary key of each table, so we have to put every field in the where clause
+     * @param dbName
+     * @param tableName
+     * @param fieldMap
+     * @param entryType
+     * @return
+     */
     public boolean push(String dbName, String tableName, Map<Field, Object[]> fieldMap, EntryType entryType) {
         Boolean isSuccess = false;
-        int beforeUpdateId = 0;
-        int afterUpdateId = 0;
+        boolean afterUpdateExist;
+        boolean beforeUpdateExist;
         switch (entryType) {
             case CREATE:
-                // TODO : looks like it's handling Duplicated Message
-                // TODO should check if record already present in CQL
-//                afterUpdateId = queryAfterUpdateRowId(dbName, tableName, fieldMap);
-//                if (afterUpdateId != 0){
-//                    isSuccess = true;
-//                    break;
-//                }
-                isSuccess = updateRow(dbName, tableName, fieldMap, beforeUpdateId);
+                afterUpdateExist = rowExist(dbName, tableName, fieldMap, AFTER_UPDATE);
+                if (afterUpdateExist){
+                    isSuccess = true;
+                } else {
+                    isSuccess = updateRow(dbName, tableName, fieldMap);
+                }
                 break;
             case UPDATE:
-                log.info("UPDATE not supported yet");
-                isSuccess = true;
+                afterUpdateExist = rowExist(dbName, tableName, fieldMap, AFTER_UPDATE);
+                beforeUpdateExist = rowExist(dbName, tableName, fieldMap, BEFORE_UPDATE);
+                if (afterUpdateExist) {
+                    isSuccess = true;
+                } else {
+                    isSuccess = updateRow(dbName, tableName, fieldMap);
+                }
                 break;
             case DELETE:
-                log.info("DELETE not supported yet");
-                isSuccess = true;
+                isSuccess = deleteRow(dbName, tableName, fieldMap);
                 break;
             default:
                 log.error("entryType {} is illegal.", entryType.toString());
@@ -87,6 +97,97 @@ public class Updater {
 
     public void setConfig(Config config) {
         this.config = config;
+    }
+
+
+    /** Since we have no way of getting the id of a record, and we cannot get the primary key list of a table,
+     * even we can it is not extensible. So we the result sql sentense would be like
+     * UPDATE dbName.tableName SET afterUpdateValues WHERE beforeUpdateValues.
+     *
+     */
+    private Boolean updateRow(String dbName, String tableName, Map<Field, Object[]> fieldMap) {
+
+        int count = 0;
+        String update = "update " + dbName + "." + tableName + " set ";
+
+        for (Map.Entry<Field, Object[]> entry : fieldMap.entrySet()) {
+            count++;
+            String fieldName = entry.getKey().getName();
+            FieldType fieldType = entry.getKey().getType();
+            Object fieldValue = entry.getValue()[1];
+            if (count != 1) {
+                update += ", ";
+            }
+            if (fieldValue == null) {
+                update += fieldName + " = NULL";
+            } else {
+                update = typeParser(fieldType, fieldName, fieldValue, update);
+            }
+        }
+
+        update = appendWhereClause(update, fieldMap, BEFORE_UPDATE);
+
+
+        SimpleStatement stmt;
+        boolean finishUpdate = false;
+        try {
+            while (!cqlSession.isClosed() && !finishUpdate){
+                stmt = SimpleStatement.newInstance(update);
+                ResultSet result = cqlSession.execute(stmt);
+                if (result.wasApplied()) {
+                    log.info("update table success, executed cql query {}", update);
+                    return true;
+                }
+                finishUpdate = true;
+            }
+        } catch (Exception e) {
+            log.error("update table error,{}", e);
+        }
+        return false;
+    }
+
+
+    private boolean deleteRow(String dbName, String tableName, Map<Field, Object[]> fieldMap) {
+        SimpleStatement stmt;
+        String delete = "delete from " + dbName + "." + tableName;
+        delete = appendWhereClause(delete, fieldMap, BEFORE_UPDATE);
+        boolean finishDelete = false;
+        try {
+            while (!cqlSession.isClosed() && !finishDelete){
+                stmt = SimpleStatement.newInstance(delete);
+                ResultSet result = cqlSession.execute(stmt);
+                if (result.wasApplied()) {
+                    log.info("delete from table success, executed query {}", delete);
+                    return true;
+                }
+                finishDelete = true;
+            }
+        } catch (Exception e) {
+            log.error("delete from table error,{}", e);
+        }
+        return false;
+    }
+
+    private boolean rowExist(String dbName, String tableName, Map<Field, Object[]> fieldMap, int beforeOrAfterUpdate) {
+        String query = "select * from " + dbName + "." + tableName;
+        query = appendWhereClause(query, fieldMap, beforeOrAfterUpdate);
+
+        SimpleStatement stmt;
+        try {
+            while (!cqlSession.isClosed()){
+                stmt = SimpleStatement.newInstance(query);
+                // Is result set lazy?
+                ResultSet result = cqlSession.execute(stmt);
+                if (result.iterator().hasNext()) {
+                    log.info("{} update raw exist", beforeOrAfterUpdate == 0 ? "Before" : "After");
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        } catch (Exception e) {
+            log.error("update table error,{}", e);
+        }
     }
 
     private String typeParser(FieldType fieldType, String fieldName, Object fieldValue, String sql) {
@@ -110,47 +211,20 @@ public class Updater {
         return sql;
     }
 
-    private Boolean updateRow(String dbName, String tableName, Map<Field, Object[]> fieldMap, Integer id) {
-        int count = 0;
-        SimpleStatement stmt;
-        boolean finishUpdate = false;
-        String update = "update " + dbName + "." + tableName + " set ";
-
+    private String appendWhereClause(String sql, Map<Field, Object[]> fieldMap, int beforeOrAfterUpdate) {
+        sql += " where 1=1";
         for (Map.Entry<Field, Object[]> entry : fieldMap.entrySet()) {
-            count++;
             String fieldName = entry.getKey().getName();
             FieldType fieldType = entry.getKey().getType();
-            Object fieldValue = entry.getValue()[1];
-//            if ("id".equals(fieldName)) {
-//                // TODO should not be executed as there is no default id in canssandra
-//                if (id == 0)
-//                    continue;
-//                else
-//                    fieldValue = id;
-//            }
-            if (count != 1) {
-                update += ", ";
-            }
-            if (fieldValue == null) {
-                update += fieldName + " = NULL";
+            Object fieldValue = entry.getValue()[beforeOrAfterUpdate];
+            sql += " and ";
+            if (fieldValue == null)
+            {
+                sql += fieldName + " is NULL";
             } else {
-                update = typeParser(fieldType, fieldName, fieldValue, update);
+                sql = typeParser(fieldType, fieldName, fieldValue, sql);
             }
         }
-
-        try {
-            while (!cqlSession.isClosed() && !finishUpdate){
-                stmt = SimpleStatement.newInstance(update);
-                ResultSet result = cqlSession.execute(stmt);
-                if (result.wasApplied()) {
-                    log.info("replace into table success");
-                    return true;
-                }
-                finishUpdate = true;
-            }
-        } catch (Exception e) {
-            log.error("update table error,{}", e);
-        }
-        return false;
+        return sql;
     }
 }

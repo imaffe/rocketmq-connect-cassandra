@@ -72,6 +72,7 @@ public class DBUtils {
         try {
 //            File file = new File("/usr/local/connector-plugins/application.conf");
 //            CqlSession session = CqlSession.builder().withConfigLoader(DriverConfigLoader.fromFile(file)).build();
+            // TODO doesn't need this executor
             ExecutorService executorService = Executors.newSingleThreadExecutor();
             Future<CqlSession> handle = executorService.submit(new Callable<CqlSession>() {
                 @Override
