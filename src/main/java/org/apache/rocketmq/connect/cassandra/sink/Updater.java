@@ -188,7 +188,7 @@ public class Updater {
         } catch (Exception e) {
             log.error("update table error,{}", e);
         }
-        return false
+        return false;
     }
 
     private String typeParser(FieldType fieldType, String fieldName, Object fieldValue, String sql) {
