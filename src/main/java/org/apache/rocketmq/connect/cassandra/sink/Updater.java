@@ -113,7 +113,7 @@ public class Updater {
         for (Map.Entry<Field, Object[]> entry : fieldMap.entrySet()) {
 
             // skip the fields that didn't change
-            if (entry.getValue()[0].equals(entry.getValue()[2])) continue;
+            if (entry.getValue()[0].equals(entry.getValue()[1])) continue;
 
             count++;
             String fieldName = entry.getKey().getName();
