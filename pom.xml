@@ -258,11 +258,11 @@
             <artifactId>java-driver-core-shaded</artifactId>
             <version>4.5.1</version>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>com.datastax.oss</groupId>-->
-<!--            <artifactId>java-driver-query-builder</artifactId>-->
-<!--            <version>4.5.1</version>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>com.datastax.oss</groupId>
+            <artifactId>java-driver-query-builder</artifactId>
+            <version>4.5.1</version>
+        </dependency>
 <!--        <dependency>-->
 <!--            <groupId>com.datastax.oss</groupId>-->
 <!--            <artifactId>java-driver-mapper-runtime</artifactId>-->

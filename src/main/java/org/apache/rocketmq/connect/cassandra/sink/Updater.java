@@ -22,6 +22,9 @@ package org.apache.rocketmq.connect.cassandra.sink;
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.SimpleStatement;
+import com.datastax.oss.driver.api.querybuilder.QueryBuilder;
+import com.datastax.oss.driver.api.querybuilder.insert.InsertInto;
+import com.datastax.oss.driver.api.querybuilder.insert.RegularInsert;
 import io.openmessaging.connector.api.data.EntryType;
 import io.openmessaging.connector.api.data.Field;
 import io.openmessaging.connector.api.data.FieldType;
@@ -108,34 +111,27 @@ public class Updater {
     private Boolean updateRow(String dbName, String tableName, Map<Field, Object[]> fieldMap) {
 
         int count = 0;
-        String update = "update " + dbName + "." + tableName + " set ";
-
+        InsertInto insert = QueryBuilder.insertInto(dbName, tableName);
+        RegularInsert regularInsert = null;
         for (Map.Entry<Field, Object[]> entry : fieldMap.entrySet()) {
             count++;
             String fieldName = entry.getKey().getName();
             FieldType fieldType = entry.getKey().getType();
             Object fieldValue = entry.getValue()[1];
-            if (count != 1) {
-                update += ", ";
-            }
-            if (fieldValue == null) {
-                update += fieldName + " = NULL";
-            } else {
-                update = typeParser(fieldType, fieldName, fieldValue, update);
-            }
+            if (count == 1) regularInsert = insert.value(fieldName, QueryBuilder.literal(fieldValue));
+            else regularInsert = regularInsert.value(fieldName, QueryBuilder.literal(fieldValue));
         }
-
-        update = appendWhereClause(update, fieldMap, BEFORE_UPDATE);
 
 
         SimpleStatement stmt;
         boolean finishUpdate = false;
+        log.error("trying to execute sql query,{}", regularInsert.asCql());
         try {
             while (!cqlSession.isClosed() && !finishUpdate){
-                stmt = SimpleStatement.newInstance(update);
+                stmt = regularInsert.build();
                 ResultSet result = cqlSession.execute(stmt);
                 if (result.wasApplied()) {
-                    log.info("update table success, executed cql query {}", update);
+                    log.info("update table success, executed cql query {}", regularInsert.asCql());
                     return true;
                 }
                 finishUpdate = true;
@@ -228,6 +224,8 @@ public class Updater {
                 sql = typeParser(fieldType, fieldName, fieldValue, sql);
             }
         }
+
+        sql += " allow filtering";
         return sql;
     }
 }
