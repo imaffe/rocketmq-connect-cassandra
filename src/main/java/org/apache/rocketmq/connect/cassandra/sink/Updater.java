@@ -130,7 +130,6 @@ public class Updater {
         }
 
         update = appendWhereClause(update, fieldMap, BEFORE_UPDATE);
-        update = appendAllowFilter(update);
 
         SimpleStatement stmt;
         boolean finishUpdate = false;
@@ -232,12 +231,11 @@ public class Updater {
                 sql = typeParser(fieldType, fieldName, fieldValue, sql);
             }
         }
-        return sql;
-    }
 
-    private String appendAllowFilter(String sql) {
         sql += " allow filtering";
         return sql;
     }
+
+
 
 }
