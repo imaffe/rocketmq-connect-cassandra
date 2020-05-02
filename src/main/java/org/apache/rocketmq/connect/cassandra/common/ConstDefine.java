@@ -19,5 +19,5 @@ package org.apache.rocketmq.connect.cassandra.common;
 public class ConstDefine {
 
     public static String CASSANDRA_CONNECTOR_ADMIN_PREFIX = "CASSANDRA-CONNECTOR-ADMIN";
-
+    public static final String PREFIX = "cassandra";
 }

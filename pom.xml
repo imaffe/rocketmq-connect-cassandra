@@ -143,7 +143,7 @@
                     <archive>
 <!--                        TODO, need to change this main class here to cassandra-->
                         <manifest>
-                            <mainClass>org.apache.rocketmq.connect.cassandra.cassandraSourceConnector</mainClass>
+                            <mainClass>org.apache.rocketmq.connect.cassandra.cassandraSinkConnector</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
@@ -191,6 +191,7 @@
             <groupId>io.openmessaging</groupId>
             <artifactId>openmessaging-connector</artifactId>
             <version>0.1.1</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>io.openmessaging</groupId>
@@ -254,7 +255,7 @@
         </dependency>
         <dependency>
             <groupId>com.datastax.oss</groupId>
-            <artifactId>java-driver-core</artifactId>
+            <artifactId>java-driver-core-shaded</artifactId>
             <version>4.5.1</version>
         </dependency>
         <dependency>
@@ -262,6 +263,11 @@
             <artifactId>java-driver-query-builder</artifactId>
             <version>4.5.1</version>
         </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.datastax.oss</groupId>-->
+<!--            <artifactId>java-driver-mapper-runtime</artifactId>-->
+<!--            <version>4.5.1</version>-->
+<!--        </dependency>-->
     </dependencies>
 
 </project>
