@@ -111,6 +111,10 @@ public class Updater {
         String update = "update " + dbName + "." + tableName + " set ";
 
         for (Map.Entry<Field, Object[]> entry : fieldMap.entrySet()) {
+
+            // skip the fields that didn't change
+            if (entry.getValue()[0].equals(entry.getValue()[2])) continue;
+
             count++;
             String fieldName = entry.getKey().getName();
             FieldType fieldType = entry.getKey().getType();
@@ -126,7 +130,7 @@ public class Updater {
         }
 
         update = appendWhereClause(update, fieldMap, BEFORE_UPDATE);
-
+        update = appendAllowFilter(update);
 
         SimpleStatement stmt;
         boolean finishUpdate = false;
@@ -230,4 +234,10 @@ public class Updater {
         }
         return sql;
     }
+
+    private String appendAllowFilter(String sql) {
+        sql += " allow filtering";
+        return sql;
+    }
+
 }
