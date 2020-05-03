@@ -23,8 +23,11 @@ import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.SimpleStatement;
 import com.datastax.oss.driver.api.querybuilder.QueryBuilder;
+import com.datastax.oss.driver.api.querybuilder.delete.Delete;
+import com.datastax.oss.driver.api.querybuilder.delete.DeleteSelection;
 import com.datastax.oss.driver.api.querybuilder.insert.InsertInto;
 import com.datastax.oss.driver.api.querybuilder.insert.RegularInsert;
+import com.datastax.oss.driver.api.querybuilder.select.SelectFrom;
 import io.openmessaging.connector.api.data.EntryType;
 import io.openmessaging.connector.api.data.Field;
 import io.openmessaging.connector.api.data.FieldType;
@@ -65,21 +68,10 @@ public class Updater {
         boolean beforeUpdateExist;
         switch (entryType) {
             case CREATE:
-                afterUpdateExist = rowExist(dbName, tableName, fieldMap, AFTER_UPDATE);
-                if (afterUpdateExist){
-                    isSuccess = true;
-                } else {
-                    isSuccess = updateRow(dbName, tableName, fieldMap);
-                }
+                isSuccess = updateRow(dbName, tableName, fieldMap);
                 break;
             case UPDATE:
-                afterUpdateExist = rowExist(dbName, tableName, fieldMap, AFTER_UPDATE);
-                beforeUpdateExist = rowExist(dbName, tableName, fieldMap, BEFORE_UPDATE);
-                if (afterUpdateExist) {
-                    isSuccess = true;
-                } else {
-                    isSuccess = updateRow(dbName, tableName, fieldMap);
-                }
+                isSuccess = updateRow(dbName, tableName, fieldMap);
                 break;
             case DELETE:
                 isSuccess = deleteRow(dbName, tableName, fieldMap);
@@ -144,13 +136,22 @@ public class Updater {
 
 
     private boolean deleteRow(String dbName, String tableName, Map<Field, Object[]> fieldMap) {
-        SimpleStatement stmt;
-        String delete = "delete from " + dbName + "." + tableName;
-        delete = appendWhereClause(delete, fieldMap, BEFORE_UPDATE);
+        DeleteSelection deleteSelection = QueryBuilder.deleteFrom(dbName, tableName);
+        Delete delete = null;
+        int count = 0;
+        for (Map.Entry<Field, Object[]> entry : fieldMap.entrySet()) {
+            count++;
+            String fieldName = entry.getKey().getName();
+            FieldType fieldType = entry.getKey().getType();
+            Object fieldValue = entry.getValue()[1];
+            if (count == 1) delete = deleteSelection.whereColumn(fieldName).isEqualTo(QueryBuilder.literal(fieldValue));
+            else delete = delete.whereColumn(fieldName).isEqualTo(QueryBuilder.literal(fieldValue));
+        }
+
         boolean finishDelete = false;
+        SimpleStatement stmt = delete.build();
         try {
             while (!cqlSession.isClosed() && !finishDelete){
-                stmt = SimpleStatement.newInstance(delete);
                 ResultSet result = cqlSession.execute(stmt);
                 if (result.wasApplied()) {
                     log.info("delete from table success, executed query {}", delete);
@@ -160,29 +161,6 @@ public class Updater {
             }
         } catch (Exception e) {
             log.error("delete from table error,{}", e);
-        }
-        return false;
-    }
-
-    private boolean rowExist(String dbName, String tableName, Map<Field, Object[]> fieldMap, int beforeOrAfterUpdate) {
-        String query = "select * from " + dbName + "." + tableName;
-        query = appendWhereClause(query, fieldMap, beforeOrAfterUpdate);
-
-        SimpleStatement stmt;
-        try {
-            while (!cqlSession.isClosed()){
-                stmt = SimpleStatement.newInstance(query);
-                // Is result set lazy?
-                ResultSet result = cqlSession.execute(stmt);
-                if (result.iterator().hasNext()) {
-                    log.info("{} update raw exist", beforeOrAfterUpdate == 0 ? "Before" : "After");
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-        } catch (Exception e) {
-            log.error("update table error,{}", e);
         }
         return false;
     }
@@ -205,27 +183,6 @@ public class Updater {
             default:
                 log.error("fieldType {} is illegal.", fieldType.toString());
         }
-        return sql;
-    }
-
-    private String appendWhereClause(String sql, Map<Field, Object[]> fieldMap, int beforeOrAfterUpdate) {
-        sql += " where ";
-        int count = 0;
-        for (Map.Entry<Field, Object[]> entry : fieldMap.entrySet()) {
-            count++;
-            String fieldName = entry.getKey().getName();
-            FieldType fieldType = entry.getKey().getType();
-            Object fieldValue = entry.getValue()[beforeOrAfterUpdate];
-            if (count != 1) sql += " and ";
-            if (fieldValue == null)
-            {
-                sql += fieldName + " is NULL";
-            } else {
-                sql = typeParser(fieldType, fieldName, fieldValue, sql);
-            }
-        }
-
-        sql += " allow filtering";
         return sql;
     }
 }
