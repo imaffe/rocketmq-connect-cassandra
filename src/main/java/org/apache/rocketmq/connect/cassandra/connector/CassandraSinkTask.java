@@ -65,7 +65,7 @@ public class CassandraSinkTask extends SinkTask {
             } else {
                 updater = tableQueue.peek();
             }
-
+            log.info("Cassandra Sink Task trying to put()");
             // TODO I used cfName for tableName, keyspaceName for dbName. just here
             for (SinkDataEntry record : sinkDataEntries) {
                 Map<Field, Object[]> fieldMap = new HashMap<>();
@@ -89,6 +89,7 @@ public class CassandraSinkTask extends SinkTask {
                     }
                 }
                 if (!parseError) {
+                    log.info("Cassandra Sink Task trying to call updater.push()");
                     Boolean isSuccess = updater.push(keyspaceName, cfName, fieldMap, entryType);
                     if (!isSuccess) {
                         log.error("push data error, keyspaceName:{}, cfName:{}, entryType:{}, fieldMap:{}", keyspaceName, cfName, fieldMap, entryType);

@@ -67,7 +67,7 @@ public class Updater {
      * @return
      */
     public boolean push(String dbName, String tableName, Map<Field, Object[]> fieldMap, EntryType entryType) {
-        log.info("Trying to push data");
+        log.info("Updater Trying to push data");
         Boolean isSuccess = false;
         boolean afterUpdateExist;
         boolean beforeUpdateExist;
@@ -106,7 +106,7 @@ public class Updater {
      *
      */
     private Boolean updateRow(String dbName, String tableName, Map<Field, Object[]> fieldMap) {
-
+        log.info("Updater.updateRow() get called ");
         int count = 0;
         InsertInto insert = QueryBuilder.insertInto(dbName, tableName);
         RegularInsert regularInsert = null;
