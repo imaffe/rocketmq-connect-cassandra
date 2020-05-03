@@ -17,7 +17,7 @@ class JdbcCassandra(Base):
     int_type = Column(INT, primary_key=True, autoincrement=True)
     ascii_type = Column(VARCHAR(50))
     boolean_type = Column(BOOLEAN)
-    date_type = Column(DATETIME)
+    date_type = Column(DATE)
     decimal_type = Column(DECIMAL)
     double_type = Column(FLOAT)
     float_type = Column(FLOAT)
@@ -62,6 +62,10 @@ def random_date(start, end, prop):
 def random_time(start, end, prop):
     return bytes(str_time_prop(start, end, '%Y-%m-%d %H:%M:%S', prop), 'utf8')
 
+def format_time():
+    t = datetime.datetime.now()
+    s = t.strftime('%Y-%m-%d %H:%M:%S.%f')
+    return s[:-3]
 
 def main():
     
