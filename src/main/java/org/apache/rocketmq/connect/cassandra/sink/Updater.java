@@ -67,6 +67,7 @@ public class Updater {
      * @return
      */
     public boolean push(String dbName, String tableName, Map<Field, Object[]> fieldMap, EntryType entryType) {
+        log.info("Trying to push data");
         Boolean isSuccess = false;
         boolean afterUpdateExist;
         boolean beforeUpdateExist;
@@ -125,7 +126,7 @@ public class Updater {
 
         SimpleStatement stmt;
         boolean finishUpdate = false;
-        log.error("trying to execute sql query,{}", regularInsert.asCql());
+        log.info("trying to execute sql query,{}", regularInsert.asCql());
         try {
             while (!cqlSession.isClosed() && !finishUpdate){
                 stmt = regularInsert.build();
