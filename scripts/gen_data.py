@@ -7,7 +7,7 @@ import random
 import string
 import datetime
 import time
-
+import uuid
 
 
 
@@ -26,9 +26,9 @@ class JdbcCassandra(Base):
     time_type  = Column(TIME)
     text_type = Column(TEXT)
     timestamp_type  = Column(TIMESTAMP)
-    timeuuid_type  = Column(BINARY(16))
+    timeuuid_type  = Column(BINARY(18))
     tinyint_type  = Column(SMALLINT)
-    uuid_type  = Column(BINARY(16))
+    uuid_type  = Column(BINARY(18))
     varchar_type  = Column(VARCHAR(50))
     varint_type  = Column(BIGINT)
 
@@ -117,9 +117,9 @@ def main():
             time_type = datetime.datetime.now().time(),
             text_type = random_string(30),
             timestamp_type = datetime.datetime.now(),
-            timeuuid_type = random_string(16),
+            timeuuid_type = uuid.uuid1().bytes,
             tinyint_type = 1,
-            uuid_type = random_string(16),
+            uuid_type = uuid.uuid1().bytes,
             varchar_type = random_string(30),
             varint_type = random.getrandbits(63),
         )
