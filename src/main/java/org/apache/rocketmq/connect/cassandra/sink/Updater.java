@@ -22,15 +22,19 @@ package org.apache.rocketmq.connect.cassandra.sink;
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.SimpleStatement;
+import com.datastax.oss.driver.api.core.type.DataType;
+import com.datastax.oss.driver.api.core.type.DataTypes;
 import com.datastax.oss.driver.api.querybuilder.QueryBuilder;
 import com.datastax.oss.driver.api.querybuilder.delete.Delete;
 import com.datastax.oss.driver.api.querybuilder.delete.DeleteSelection;
 import com.datastax.oss.driver.api.querybuilder.insert.InsertInto;
 import com.datastax.oss.driver.api.querybuilder.insert.RegularInsert;
 import com.datastax.oss.driver.api.querybuilder.select.SelectFrom;
+import com.datastax.oss.driver.api.querybuilder.term.Term;
 import io.openmessaging.connector.api.data.EntryType;
 import io.openmessaging.connector.api.data.Field;
 import io.openmessaging.connector.api.data.FieldType;
+import javax.xml.crypto.Data;
 import org.apache.rocketmq.connect.cassandra.config.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -110,8 +114,12 @@ public class Updater {
             String fieldName = entry.getKey().getName();
             FieldType fieldType = entry.getKey().getType();
             Object fieldValue = entry.getValue()[1];
-            if (count == 1) regularInsert = insert.value(fieldName, QueryBuilder.literal(fieldValue));
-            else regularInsert = regularInsert.value(fieldName, QueryBuilder.literal(fieldValue));
+            if (count == 1) {
+                regularInsert = insert.value(fieldName, buildTerm(fieldType, fieldValue));
+            }
+            else {
+                regularInsert = regularInsert.value(fieldName, buildTerm(fieldType, fieldValue));
+            }
         }
 
 
@@ -144,8 +152,14 @@ public class Updater {
             String fieldName = entry.getKey().getName();
             FieldType fieldType = entry.getKey().getType();
             Object fieldValue = entry.getValue()[1];
-            if (count == 1) delete = deleteSelection.whereColumn(fieldName).isEqualTo(QueryBuilder.literal(fieldValue));
-            else delete = delete.whereColumn(fieldName).isEqualTo(QueryBuilder.literal(fieldValue));
+            if (count == 1) {
+                delete = deleteSelection.whereColumn(fieldName)
+                    .isEqualTo(buildTerm(fieldType, fieldValue));
+            }
+            else {
+                delete = delete.whereColumn(fieldName)
+                    .isEqualTo(buildTerm(fieldType, fieldValue));
+            }
         }
 
         boolean finishDelete = false;
@@ -165,24 +179,29 @@ public class Updater {
         return false;
     }
 
-    private String typeParser(FieldType fieldType, String fieldName, Object fieldValue, String sql) {
+
+    private Term buildTerm(FieldType fieldType, Object fieldValue) {
+        // TODO will decide using typehints or not
+        return QueryBuilder.literal(fieldValue);
+    }
+    private DataType typeParser(FieldType fieldType) {
+        DataType dataType = null;
         switch (fieldType) {
             case STRING:
-                sql += fieldName + " = " + "'" + fieldValue + "'";
                 break;
             case DATETIME:
-                log.info("DATETIME type not supported yet");
                 break;
             case INT32:
             case INT64:
             case FLOAT32:
             case FLOAT64:
             case BIG_INTEGER:
-                sql += fieldName + " = " + fieldValue;
+                dataType = DataTypes.BIGINT;
                 break;
             default:
                 log.error("fieldType {} is illegal.", fieldType.toString());
         }
-        return sql;
+        return dataType;
     }
+
 }
