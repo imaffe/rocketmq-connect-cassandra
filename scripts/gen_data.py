@@ -28,7 +28,7 @@ class JdbcCassandra(Base):
     timestamp_type  = Column(TIMESTAMP)
     #timeuuid_type  = Column(CHAR(36))
     tinyint_type  = Column(SMALLINT)
-    uuid_type  = Column(CHAR(36))
+    #uuid_type  = Column(CHAR(36))
     varchar_type  = Column(VARCHAR(50))
     varint_type  = Column(BIGINT)
 
@@ -123,7 +123,7 @@ def main():
             timestamp_type = datetime.datetime.now(),
             #timeuuid_type = str(uuid.uuid1()),
             tinyint_type = 1,
-            uuid_type = str(uuid.uuid1()),
+            #uuid_type = str(uuid.uuid1()),
             varchar_type = random_string(30),
             varint_type = random.getrandbits(63),
         )
