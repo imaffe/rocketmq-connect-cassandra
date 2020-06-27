@@ -114,6 +114,7 @@ public class CassandraSinkTask extends SinkTask {
             cqlSession = DBUtils.initCqlSession(config);
             log.info("init data source success");
         } catch (Exception e) {
+            // TODO I should throw Exceptions here
             log.error("Cannot start Cassandra Sink Task because of configuration error{}", e);
         }
         String mode = config.getMode();
