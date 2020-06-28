@@ -80,7 +80,7 @@ public class DBUtils {
                     return CqlSession.builder()
                             .addContactPoint(new InetSocketAddress(dbUrl, Integer.valueOf(dbPort)))
                             // TODO need to use a valid datacenter value here
-                            .withLocalDatacenter("datacenter1")
+                            .withLocalDatacenter(localDataCenter)
                             .build();
                 }
             });
