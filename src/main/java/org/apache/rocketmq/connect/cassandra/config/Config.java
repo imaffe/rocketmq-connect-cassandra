@@ -52,6 +52,7 @@ public class Config {
     public static final String CONN_DB_PORT = "dbPort";
     public static final String CONN_DB_USERNAME = "dbUsername";
     public static final String CONN_DB_PASSWORD = "dbPassword";
+    public static final String CONN_DB_DATACENTER = "localDataCenter";
     public static final String CONN_DATA_TYPE = "dataType";
     public static final String CONN_TOPIC_NAMES = "topicNames";
     public static final String CONN_DB_MODE = "mode";
@@ -81,6 +82,7 @@ public class Config {
         {
             add("dbUrl");
             add("dbPort");
+            add("localDataCenter");
             add("dbUsername");
             add("dbPassword");
             add("mode");
