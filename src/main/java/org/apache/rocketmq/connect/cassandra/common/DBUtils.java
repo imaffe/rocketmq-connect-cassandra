@@ -77,7 +77,10 @@ public class DBUtils {
             Future<CqlSession> handle = executorService.submit(new Callable<CqlSession>() {
                 @Override
                 public CqlSession call() {
-                    return CqlSession.builder().addContactPoint(new InetSocketAddress(dbUrl, Integer.valueOf(dbPort)))
+                    return CqlSession.builder()
+                            .addContactPoint(new InetSocketAddress(dbUrl, Integer.valueOf(dbPort)))
+                            // TODO need to use a valid datacenter value here
+                            .withLocalDatacenter("datacenter1")
                             .build();
                 }
             });
