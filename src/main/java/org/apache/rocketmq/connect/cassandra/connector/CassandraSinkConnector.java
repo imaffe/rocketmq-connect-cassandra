@@ -23,13 +23,8 @@ import io.openmessaging.KeyValue;
 import io.openmessaging.connector.api.Task;
 import io.openmessaging.connector.api.sink.SinkConnector;
 import java.util.concurrent.ScheduledFuture;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
-import org.apache.commons.lang3.text.StrSubstitutor;
 import org.apache.rocketmq.client.exception.MQClientException;
-import org.apache.rocketmq.common.MixAll;
-import org.apache.rocketmq.common.TopicConfig;
-import org.apache.rocketmq.common.protocol.body.TopicList;
 import org.apache.rocketmq.common.protocol.route.BrokerData;
 import org.apache.rocketmq.common.protocol.route.QueueData;
 import org.apache.rocketmq.common.protocol.route.TopicRouteData;
@@ -39,7 +34,6 @@ import org.apache.rocketmq.connect.cassandra.common.DataType;
 import org.apache.rocketmq.connect.cassandra.common.Utils;
 import org.apache.rocketmq.connect.cassandra.config.*;
 import org.apache.rocketmq.remoting.RPCHook;
-import org.apache.rocketmq.remoting.exception.RemotingException;
 import org.apache.rocketmq.tools.admin.DefaultMQAdminExt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,8 +42,7 @@ import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
 
 public class CassandraSinkConnector extends SinkConnector{
     private static final Logger log = LoggerFactory.getLogger(CassandraSinkConnector.class);
@@ -63,6 +56,7 @@ public class CassandraSinkConnector extends SinkConnector{
     private volatile boolean adminStarted;
 
     private ScheduledFuture<?> listenerHandle;
+
     public CassandraSinkConnector() {
         topicRouteMap = new HashMap<>();
         dbConnectorConfig = new SinkDbConnectorConfig();
