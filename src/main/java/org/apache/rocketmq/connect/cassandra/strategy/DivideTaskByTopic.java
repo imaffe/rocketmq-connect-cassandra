@@ -28,7 +28,11 @@ import java.util.*;
 public class DivideTaskByTopic extends TaskDivideStrategy {
     @Override
     public List<KeyValue> divide(DbConnectorConfig dbConnectorConfig, TaskDivideConfig tdc) {
-        return divideSinkTaskByTopic(dbConnectorConfig, tdc);
+        if (dbConnectorConfig instanceof SourceDbConnectorConfig){
+            return divideSourceTaskByTopic(dbConnectorConfig, tdc);
+        }else {
+            return divideSinkTaskByTopic(dbConnectorConfig, tdc);
+        }
     }
 
     private List<KeyValue> divideSinkTaskByTopic(DbConnectorConfig dbConnectorConfig, TaskDivideConfig tdc) {
@@ -53,6 +57,46 @@ public class DivideTaskByTopic extends TaskDivideStrategy {
             keyValue.put(Config.CONN_DB_USERNAME, tdc.getDbUserName());
             keyValue.put(Config.CONN_DB_PASSWORD, tdc.getDbPassword());
             keyValue.put(Config.CONN_TOPIC_NAMES, taskTopicList.get(i).toString());
+            keyValue.put(Config.CONN_DATA_TYPE, tdc.getDataType());
+            keyValue.put(Config.CONN_SOURCE_RECORD_CONVERTER, tdc.getSrcRecordConverter());
+            keyValue.put(Config.CONN_DB_MODE, tdc.getMode());
+            config.add(keyValue);
+        }
+
+        return config;
+    }
+
+    private List<KeyValue> divideSourceTaskByTopic(DbConnectorConfig dbConnectorConfig, TaskDivideConfig tdc) {
+        List<KeyValue> config = new ArrayList<KeyValue>();
+        int parallelism = tdc.getTaskParallelism();
+        int id = -1;
+        Map<String, String> topicRouteMap = ((SourceDbConnectorConfig)dbConnectorConfig).getWhiteTopics();
+        Map<Integer, Map<String, Map<String, String>>> taskTopicList = new HashMap<>();
+        for (Map.Entry<String, String> entry : topicRouteMap.entrySet()) {
+            int ind = ++id % parallelism;
+            if (!taskTopicList.containsKey(ind)) {
+                taskTopicList.put(ind, new HashMap<>());
+            }
+            String dbKey = entry.getKey().split("-")[0];
+            String tableKey = entry.getKey().split("-")[1];
+            String filter = entry.getValue();
+            Map<String, String> tableMap = new HashMap<>();
+            tableMap.put(tableKey, filter);
+            if(!taskTopicList.get(ind).containsKey(dbKey)){
+                taskTopicList.get(ind).put(dbKey, tableMap);
+            }else {
+                taskTopicList.get(ind).get(dbKey).putAll(tableMap);
+            }
+        }
+
+        for (int i = 0; i < parallelism; i++) {
+            KeyValue keyValue = new DefaultKeyValue();
+
+            keyValue.put(Config.CONN_DB_IP, tdc.getDbUrl());
+            keyValue.put(Config.CONN_DB_PORT, tdc.getDbPort());
+            keyValue.put(Config.CONN_DB_USERNAME, tdc.getDbUserName());
+            keyValue.put(Config.CONN_DB_PASSWORD, tdc.getDbPassword());
+            keyValue.put(Config.CONN_WHITE_LIST, JSONObject.toJSONString(taskTopicList.get(i)));
             keyValue.put(Config.CONN_DATA_TYPE, tdc.getDataType());
             keyValue.put(Config.CONN_SOURCE_RECORD_CONVERTER, tdc.getSrcRecordConverter());
             keyValue.put(Config.CONN_DB_MODE, tdc.getMode());
