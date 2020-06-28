@@ -64,6 +64,7 @@ public class DBUtils {
 
         log.info("Cassandra dbUrl: {}", dbUrl);
         log.info("Cassandra dbPort: {}", dbPort);
+        log.info("Cassandra datacenter: {}", localDataCenter);
         log.info("Cassandra username: {}", username);
         log.info("Cassandra password: {}", password);
 
