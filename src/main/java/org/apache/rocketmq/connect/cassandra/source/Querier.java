@@ -103,7 +103,7 @@ public class Querier {
                     for (Row row : result) {
                         Table tableWithData = new Table(dbName, tableName);
                         tableWithData.setColList(colList);
-                        table.setRawDataTypeList(dataTypeList);
+                        tableWithData.setRawDataTypeList(dataTypeList);
                         tableWithData.setParserList(parserList);
 
                         for (String col : colList) {
