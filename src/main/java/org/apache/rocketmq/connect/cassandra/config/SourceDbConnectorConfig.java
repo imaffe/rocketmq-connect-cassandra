@@ -30,6 +30,7 @@ public class SourceDbConnectorConfig extends DbConnectorConfig{
         this.dbPort = config.getString(Config.CONN_DB_PORT);
         this.dbUserName = config.getString(Config.CONN_DB_USERNAME);
         this.dbPassword = config.getString(Config.CONN_DB_PASSWORD);
+        this.localDataCenter = config.getString(Config.CONN_DB_DATACENTER);
         this.mode = config.getString(Config.CONN_DB_MODE, "bulk");
 
     }

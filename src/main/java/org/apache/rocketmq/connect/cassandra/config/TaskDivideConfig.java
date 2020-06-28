@@ -26,6 +26,8 @@ public class TaskDivideConfig {
 
     private String dbPassword;
 
+    private String localDataCenter;
+
     private String srcRecordConverter;
 
     private int dataType;
@@ -34,12 +36,13 @@ public class TaskDivideConfig {
 
     private String mode;
 
-    public TaskDivideConfig(String dbUrl, String dbPort, String dbUserName, String dbPassword, String srcRecordConverter,
-                            int dataType, int taskParallelism, String mode) {
+    public TaskDivideConfig(String dbUrl, String dbPort, String dbUserName, String dbPassword, String localDataCenter,
+                            String srcRecordConverter, int dataType, int taskParallelism, String mode) {
         this.dbUrl = dbUrl;
         this.dbPort = dbPort;
         this.dbUserName = dbUserName;
         this.dbPassword = dbPassword;
+        this.localDataCenter = localDataCenter;
         this.srcRecordConverter = srcRecordConverter;
         this.dataType = dataType;
         this.taskParallelism = taskParallelism;
@@ -76,6 +79,14 @@ public class TaskDivideConfig {
 
     public void setDbPassword(String dbPassword) {
         this.dbPassword = dbPassword;
+    }
+
+    public String getLocalDataCenter() {
+        return localDataCenter;
+    }
+
+    public void setLocalDataCenter(String localDataCenter) {
+        this.localDataCenter = localDataCenter;
     }
 
     public String getSrcRecordConverter() {

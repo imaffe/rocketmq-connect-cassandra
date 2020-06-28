@@ -55,7 +55,7 @@ public class SinkDbConnectorConfig extends DbConnectorConfig {
         this.dbPort = config.getString(Config.CONN_DB_PORT);
         this.dbUserName = config.getString(Config.CONN_DB_USERNAME);
         this.dbPassword = config.getString(Config.CONN_DB_PASSWORD);
-
+        this.localDataCenter = config.getString(Config.CONN_DB_DATACENTER);
         this.srcNamesrvs = config.getString(Config.CONN_SOURCE_RMQ);
         this.srcCluster = config.getString(Config.CONN_SOURCE_CLUSTER);
         this.refreshInterval = config.getLong(Config.REFRESH_INTERVAL, 3);

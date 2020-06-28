@@ -223,6 +223,7 @@ public class CassandraSinkConnector extends SinkConnector{
             this.dbConnectorConfig.getDbPort(),
             this.dbConnectorConfig.getDbUserName(),
             this.dbConnectorConfig.getDbPassword(),
+            this.dbConnectorConfig.getLocalDataCenter(),
             this.dbConnectorConfig.getConverter(),
             DataType.COMMON_MESSAGE.ordinal(),
             this.dbConnectorConfig.getTaskParallelism(),

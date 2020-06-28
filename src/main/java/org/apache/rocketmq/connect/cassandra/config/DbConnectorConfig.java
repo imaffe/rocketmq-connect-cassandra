@@ -27,6 +27,7 @@ public abstract class DbConnectorConfig {
     public String dbPort;
     public String dbUserName;
     public String dbPassword;
+    public String localDataCenter;
     public String converter;
     public int taskParallelism;
     public String mode;
@@ -73,6 +74,14 @@ public abstract class DbConnectorConfig {
 
     public void setDbPassword(String dbPassword) {
         this.dbPassword = dbPassword;
+    }
+
+    public String getLocalDataCenter() {
+        return localDataCenter;
+    }
+
+    public void setLocalDataCenter(String localDataCenter) {
+        this.localDataCenter = localDataCenter;
     }
 
     public String getConverter() {
