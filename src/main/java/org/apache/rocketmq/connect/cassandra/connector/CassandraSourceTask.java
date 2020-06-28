@@ -20,6 +20,7 @@ package org.apache.rocketmq.connect.cassandra.connector;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.datastax.oss.driver.api.core.CqlSession;
 import io.openmessaging.KeyValue;
 import io.openmessaging.connector.api.data.DataEntryBuilder;
 import io.openmessaging.connector.api.data.EntryType;
@@ -29,7 +30,6 @@ import io.openmessaging.connector.api.data.SourceDataEntry;
 import io.openmessaging.connector.api.source.SourceTask;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -39,7 +39,13 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import javax.sql.DataSource;
+
+import org.apache.rocketmq.connect.cassandra.common.ConstDefine;
+import org.apache.rocketmq.connect.cassandra.common.DBUtils;
 import org.apache.rocketmq.connect.cassandra.config.Config;
+import org.apache.rocketmq.connect.cassandra.config.ConfigUtil;
+import org.apache.rocketmq.connect.cassandra.schema.Table;
+import org.apache.rocketmq.connect.cassandra.schema.column.ColumnParser;
 import org.apache.rocketmq.connect.cassandra.source.Querier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +58,7 @@ public class CassandraSourceTask extends SourceTask {
 
     private DataSource dataSource;
 
-    private Connection connection;
+    private CqlSession cqlSession;
 
     BlockingQueue<Querier> tableQueue = new LinkedBlockingQueue<Querier>();
     static final String INCREMENTING_FIELD = "incrementing";
@@ -120,8 +126,7 @@ public class CassandraSourceTask extends SourceTask {
     public void start(KeyValue props) {
         try {
             ConfigUtil.load(props, this.config);
-            dataSource = DBUtils.initDataSource(config);
-            connection = dataSource.getConnection();
+            cqlSession = DBUtils.initCqlSession(config);
             log.info("init data source success");
         } catch (Exception e) {
             log.error("Cannot start Cassandra Source Task because of configuration error{}", e);
@@ -129,23 +134,13 @@ public class CassandraSourceTask extends SourceTask {
         Map<Map<String, String>, Map<String, Object>> offsets = null;
         String mode = config.getMode();
         if (mode.equals("bulk")) {
-            Querier querier = new Querier(config, connection);
+            Querier querier = new Querier(config, cqlSession);
             try {
                 querier.start();
                 tableQueue.add(querier);
             } catch (Exception e) {
                 log.error("start querier failed in bulk mode{}", e);
             }
-        } else {
-            TimestampIncrementingQuerier querier = new TimestampIncrementingQuerier();
-            try {
-                querier.setConfig(config);
-                querier.start();
-                tableQueue.add(querier);
-            } catch (Exception e) {
-                log.error("fail to start querier{}", e);
-            }
-
         }
 
     }
@@ -153,8 +148,8 @@ public class CassandraSourceTask extends SourceTask {
     @Override
     public void stop() {
         try {
-            if (connection != null) {
-                connection.close();
+            if (cqlSession != null) {
+                cqlSession.close();
                 log.info("Cassandra source task connection is closed.");
             }
         } catch (Throwable e) {
